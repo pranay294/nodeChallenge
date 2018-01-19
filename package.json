@@ -1,0 +1,17 @@
+{
+  "name": "orgexplorer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node mockTest.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cookie-parser": "^1.4.3",
+    "express": "^4.16.2",
+    "mongoose": "^5.0.0",
+    "validator": "^9.2.0"
+  }
+}

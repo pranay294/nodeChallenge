@@ -1,0 +1,175 @@
+<html>
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <style>
+            body { position: absolute; left: 0; right: 0; top:0; bottom: 0; margin: auto; padding: 0; width: 95%; height: 95%; }
+            ul { list-style-type: none; }
+            .containers { position: absolute; left: 0; height: 49%; padding: 5px; width: 99%; border: 1px solid black; overflow-x: hidden; overflow-y: auto; }
+            .employee { top: 0; }
+            .favorite { top: 50%; }
+        </style>
+        <script type="text/javascript">
+            var isEdit = false;
+            document.cookie = "auth=Pranay";
+
+            getData();
+
+            function getData() {
+                getEmployeeData();
+                getFavoritesData();
+            }
+
+            function getEmployeeData() {
+                var url = "http://localhost:3000/Employee";
+                $.getJSON( url, function( data ) {
+                    displayPostData({});
+                    isEdit = false;
+                    $("#submitBtn").html("Submit");
+                    $("#emailField").removeAttr('disabled');
+                    var items = ["<tr><th>ID</th><th>Name</th><th>Designation</th><th>Email</th><th>Salary</th><th>Edit</th></tr>"];
+                    $.each( data.Users, function( key, val ) {
+                        var listItem = "<tr>";
+                        listItem += "<td>" + val._id + "</td>";
+                        listItem += "<td>" + val.name + "</td>";
+                        listItem += "<td>" + val.designation + "</td>";
+                        listItem += "<td>" + val.email + "</td>";
+                        listItem += "<td>" + ( val.salary || 0 ) + "</td>";
+                        listItem += "<td><Button class='editCtrl' data="+ JSON.stringify(val).replace(/ /g, "__" )+">Edit</Button></td>";
+                        items.push( listItem );
+                    });
+                    $("#allEntries").html( "<table border='1'>" + items.join("") + "</table>" );
+                    $(".editCtrl").on("click", function(){
+                        isEdit = true;
+                        $("#submitBtn").html("Update");
+                        $("#emailField").attr('disabled','disabled');
+                        var data = JSON.parse( $(this).attr("data").replace(/__/g, " ") );
+                        displayPostData(data);
+                    })
+                });
+            }
+
+            function displayPostData(obj) {
+                $("#nameField").val( obj.name || "" );
+                $("#designationField").val( obj.designation || "" );
+                $("#emailField").val( obj.email || "" );
+                $("#salaryField").val( obj.salary || "" );
+            }
+
+            function makeAjaxCall( method, postData, url, successMethod ) {
+                $.ajax({
+                    type: method,
+                    url: url,
+                    data: postData,
+                    success: successMethod,
+                    error: function(err) {
+                        var errorMsg = JSON.parse( err.responseText );
+                        var desc = typeof(errorMsg.errorMsg == "object") ? JSON.stringify(errorMsg.errorMsg) : errorMsg.errorMsg;
+                        alert( errorMsg.type + " : " + desc );
+                    },
+                    dataType: "text"
+                });
+            }
+
+            function deleteDetail() {
+                var postData = {};
+                postData.email = $("#emailField").val();
+                makeAjaxCall( "DELETE", postData, "http://localhost:3000/Employee", getEmployeeData );
+            }
+
+            function deleteFavDetail() {
+                var postData = { name : $("#favNameField").val() }
+                makeAjaxCall( "DELETE", postData, "http://localhost:3000/Favorite", getFavoritesData );
+            }
+
+            function submitFavDetail() {
+                var postData = {};
+                postData.name = $("#favNameField").val();
+                postData.list = $("#favListField").val().split(",");
+                makeAjaxCall( "POST", postData, "http://localhost:3000/Favorite", getFavoritesData );
+            }
+
+            function submitDetail() {
+                var postData = {};
+                if( isEdit ) {
+                    postData.query = { email : $("#emailField").val() };
+                    postData.change = {
+                        name : $("#nameField").val(),
+                        designation : $("#designationField").val(),
+                        salary : $("#salaryField").val()
+                    };
+                }
+                else {
+                    postData.name = $("#nameField").val();
+                    postData.designation = $("#designationField").val();
+                    postData.email = $("#emailField").val();
+                    postData.salary = $("#salaryField").val();
+                }
+                makeAjaxCall( isEdit ? "PUT" : "POST", postData, "http://localhost:3000/Employee", getEmployeeData );
+            }
+
+            function getFavoritesData() {
+                var url = "http://localhost:3000/Favorite";
+                $.getJSON( url, function( data ) {
+                    var items = ["<tr><th>ID</th><th>Name</th><th>Members</th></tr>"];
+                    $.each( data.Favorites, function( key, val ) {
+                        var listItem = "<tr><td>" + val._id + "</td><td>" + val.name + "</td>";
+                        val = val.list.map(function(i) {
+                            return "<a class='singleItem' href='#'>" + i + "</a>";
+                        });
+                        items.push( listItem + "<td>" + val.join("<br/>") + "</td></tr>" );
+                    });
+                    $("#allFavorites").html( "<table border='1'>" + items.join("") + "</table>" );
+                    $(".singleItem").on("click", function() {
+                        getIndividualData( $(this).html() )
+                    });
+                });
+            }
+
+            function getIndividualData(val) {
+                $.getJSON( "http://localhost:3000/Employee/" + val, function( data ) {
+                    alert( data.Users[0].name + " : " + data.Users[0].email );
+                });
+            }
+        </script>
+    </head>
+    <body>
+        <div class='employee containers'>
+            <h2>Employees</h2>
+            <div id="allEntries"></div>
+            <table>
+                <tr>
+                    <td>Name</td><td><input type="text" id="nameField"/></td>
+                </tr>
+                <tr>
+                    <td>Designation</td><td><input type="text" id="designationField"/></td>
+                </tr>
+                <tr>
+                    <td>Email</td><td><input type="text" id="emailField"/></td>
+                </tr>
+                <tr>
+                    <td>Salary</td><td><input type="text" id="salaryField"/></td>
+                </tr>
+                <tr>
+                    <td><Button id="submitBtn" onclick="submitDetail()">Submit</Button></td>
+                    <td><Button onclick="deleteDetail()">Delete</Button></td>
+                </tr>
+            </table>
+        </div>
+        <div class='favorite containers'>
+            <h2>Favorites</h2>
+            <div id="allFavorites"></div>
+            <table>
+                <tr>
+                    <td>Name</td><td><input type="text" id="favNameField"/></td>
+                </tr>
+                <tr>
+                    <td>Favorite Members</td><td><input type="text" id="favListField"/></td>
+                </tr>
+                <tr>
+                    <td><Button id="submitFavBtn" onclick="submitFavDetail()">Submit</Button></td>
+                    <td><Button onclick="deleteFavDetail()">Delete</Button></td>
+                </tr>
+            </table>
+        </div>
+    </body>
+</html>
