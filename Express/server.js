@@ -106,5 +106,5 @@ app.all('/Favorite', function(req, res){
 });
 
 // Express server to listen to port 3000
-app.listen(3000);
-console.log("Running at Port 3000");
+app.listen(process.env.PORT || 8080);
+console.log("Running at Port ", (process.env.PORT || 8080));
