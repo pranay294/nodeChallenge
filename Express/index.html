@@ -20,7 +20,7 @@
             }
 
             function getEmployeeData() {
-                var url = "http://localhost:3000/Employee";
+                var url = "/Employee";
                 $.getJSON( url, function( data ) {
                     displayPostData({});
                     isEdit = false;
@@ -73,19 +73,19 @@
             function deleteDetail() {
                 var postData = {};
                 postData.email = $("#emailField").val();
-                makeAjaxCall( "DELETE", postData, "http://localhost:3000/Employee", getEmployeeData );
+                makeAjaxCall( "DELETE", postData, "/Employee", getEmployeeData );
             }
 
             function deleteFavDetail() {
                 var postData = { name : $("#favNameField").val() }
-                makeAjaxCall( "DELETE", postData, "http://localhost:3000/Favorite", getFavoritesData );
+                makeAjaxCall( "DELETE", postData, "/Favorite", getFavoritesData );
             }
 
             function submitFavDetail() {
                 var postData = {};
                 postData.name = $("#favNameField").val();
                 postData.list = $("#favListField").val().split(",");
-                makeAjaxCall( "POST", postData, "http://localhost:3000/Favorite", getFavoritesData );
+                makeAjaxCall( "POST", postData, "/Favorite", getFavoritesData );
             }
 
             function submitDetail() {
@@ -104,11 +104,11 @@
                     postData.email = $("#emailField").val();
                     postData.salary = $("#salaryField").val();
                 }
-                makeAjaxCall( isEdit ? "PUT" : "POST", postData, "http://localhost:3000/Employee", getEmployeeData );
+                makeAjaxCall( isEdit ? "PUT" : "POST", postData, "/Employee", getEmployeeData );
             }
 
             function getFavoritesData() {
-                var url = "http://localhost:3000/Favorite";
+                var url = "/Favorite";
                 $.getJSON( url, function( data ) {
                     var items = ["<tr><th>ID</th><th>Name</th><th>Members</th></tr>"];
                     $.each( data.Favorites, function( key, val ) {
@@ -126,7 +126,7 @@
             }
 
             function getIndividualData(val) {
-                $.getJSON( "http://localhost:3000/Employee/" + val, function( data ) {
+                $.getJSON( "/Employee/" + val, function( data ) {
                     alert( data.Users[0].name + " : " + data.Users[0].email );
                 });
             }
